@@ -8,17 +8,12 @@ function App() {
     <>
  <Toaster position="top-right" />
 
-
-
-
       <BrowserRouter>
         <Routes>
           <Route 
           path='/' 
           element={<HomePage/>}
           />
-
-
           <Route 
           path='*' 
           element={<NotFound/>}
