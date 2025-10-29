@@ -2,6 +2,8 @@ import React from 'react';
 import TaskEmptyState from './TaskEmptyState';
 import TaskCard from './TaskCard';
 
+
+
 export const TaskList = () => {
     let filter = "all";
     const filteredTasks = [
@@ -21,22 +23,19 @@ export const TaskList = () => {
         // },
     ];
 
-    if(filteredTasks.length === 0 || !filteredTasks) {
-        return <TaskEmptyState filter={filter}/>;
+    if (filteredTasks.length === 0 || !filteredTasks) {
+        return <TaskEmptyState filter={filter} />;
     }
 
     return (
-        <div className= "space-y-3">
+        <div className="space-y-3">
             {filteredTasks.map((task, index) => (
-             <TaskCard 
-             key={tasl._id ?? index} 
-             task={task}
-             index={index}
-             />
-             
-
+                <TaskCard
+                    key={tasl._id ?? index}
+                    task={task}
+                    index={index}
+                />
             ))}
-
         </div>
     );
 };
