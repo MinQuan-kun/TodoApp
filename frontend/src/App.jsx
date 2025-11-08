@@ -6,7 +6,7 @@ import NotFound from './pages/NotFound';
 function App() {
   return (
     <>
- <Toaster position="top-right" />
+ <Toaster richColors/>
 
       <BrowserRouter>
         <Routes>
