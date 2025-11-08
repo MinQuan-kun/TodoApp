@@ -1,31 +1,27 @@
-import React from 'react';
+import React from "react";
 
-export const Footer = ({ completedTasksCount = 0, activeTaskCount = 0 }) => {
-    return <>
-        {completedTasksCount + activeTaskCount > 0 && (
-            <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                    {
-                        completedTasksCount > 0 && (
-                            <>
-                                Tuyệt vời! Bạn đã hoàn thành {completedTasksCount} nhiệm vụ.{' '}
-                                {
-                                    activeTaskCount > 0 && (
-                                        <>Còn {activeTaskCount} nhiệm vụ đang chờ bạn hoàn thành.</>
-                                    )
-                                }
-                            </>
-                        )
-                    }
-                    {completedTasksCount === 0 && activeTaskCount > 0 && (
-                        <>
-                        Bạn có {activeTaskCount} nhiệm vụ đang chờ bạn hoàn thành. Cố lên nhé!
-                        </>    
-                    )}
-                </p>
-            </div>
-        )}
+const Footer = ({ completedTasksCount = 0, activeTasksCount = 0 }) => {
+  return (
+    <>
+      {completedTasksCount + activeTasksCount > 0 && (
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            {completedTasksCount > 0 && (
+              <>
+                🎉 Tuyệt vời! Bạn đã hoàn thành {completedTasksCount} việc
+                {activeTasksCount > 0 &&
+                  `, còn ${activeTasksCount} việc nữa thôi. Cố lên!`}
+              </>
+            )}
+
+            {completedTasksCount === 0 && activeTasksCount > 0 && (
+              <>🚀 Bạn có {activeTasksCount} việc cần hoàn thành. Hãy bắt đầu ngay!</>
+            )}
+          </p>
+        </div>
+      )}
     </>
+  );
 };
 
 export default Footer;

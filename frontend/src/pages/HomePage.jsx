@@ -9,11 +9,10 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import { visibleTaskLimit } from "@/lib/data";
-import axios from "axios";
 
 
 const HomePage = () => {
-  const [taskBuffer, setTasksBuffer] = useState([]);
+  const [taskBuffer, setTaskBuffer] = useState([]);
   const [activeTaskCount, setActiveTaskCount] = useState(0);
   const [completeTaskCount, setCompleteTaskCount] = useState(0);
   const [filter, setFilter] = useState("all");
@@ -21,20 +20,67 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
 
 
-  useEffect(() => {
+ useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [dateQuery]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter, dateQuery]);
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get("http://localhost:5001/api/tasks");
-      setTasksBuffer(response.data);
-      console.log(response.data);
+      const res = await api.get(`/tasks?filter=${dateQuery}`);
+      setTaskBuffer(res.data.tasks);
+      setActiveTaskCount(res.data.activeCount);
+      setCompleteTaskCount(res.data.completeCount);
     } catch (error) {
-      console.error("Lỗi xảy ra khi lấy tasks", error);
-      toast.error("Lỗi xảy ra khi lấy tasks");
+      console.error("Lỗi xảy ra khi truy xuất tasks:", error);
+      toast.error("Lỗi xảy ra khi truy xuất tasks.");
     }
   };
+
+  const handleTaskChanged = () => {
+    fetchTasks();
+  };
+
+  const handleNext = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (page > 1) {
+      setPage((prev) => prev - 1);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const filteredTasks = taskBuffer.filter((task) => {
+    switch (filter) {
+      case "active":
+        return task.status === "active";
+      case "completed":
+        return task.status === "complete";
+      default:
+        return true;
+    }
+  });
+
+  const visibleTasks = filteredTasks.slice(
+    (page - 1) * visibleTaskLimit,
+    page * visibleTaskLimit
+  );
+
+  if (visibleTasks.length === 0) {
+    handlePrev();
+  }
+
+  const totalPages = Math.ceil(filteredTasks.length / visibleTaskLimit);
 
   return (
     <div className="min-h-screen w-full bg-white relative">
@@ -50,16 +96,46 @@ const HomePage = () => {
         <div className="w-full max-w-2xl p-6 mx-auto space-y-6">
           {/* Đầu Trang */}
           <Header />
+
           {/* Thêm Nhiệm Vụ Mới */}
-          <AddTask />
-          {/* Thống Kê và Bộ Lọc */}
-          <StatsAndFilters />
+          <AddTask handleNewTaskAdded={handleTaskChanged} />
+
+          {/* Thống Kê và Bộ lọc */}
+          <StatsAndFilters
+            filter={filter}
+            setFilter={setFilter}
+            activeTasksCount={activeTaskCount}
+            completedTasksCount={completeTaskCount}
+          />
+
           {/* Danh Sách Nhiệm Vụ */}
-          <TaskList filteredTasks={taskBuffer}/>
-          {/* Bộ Lọc Ngày Giờ */}
-          <DateTimeFilter />
-          {/* Chân Trang với Thống Kê Nhiệm Vụ */}
-          <Footer/>
+           <TaskList
+            filteredTasks={visibleTasks}
+            filter={filter}
+            handleTaskChanged={handleTaskChanged}
+          />
+
+           {/* Phân Trang và Lọc Theo Date */}
+          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+            <TaskListPagination
+              handleNext={handleNext}
+              handlePrev={handlePrev}
+              handlePageChange={handlePageChange}
+              page={page}
+              totalPages={totalPages}
+            />
+            <DateTimeFilter
+              dateQuery={dateQuery}
+              setDateQuery={setDateQuery}
+            />
+          </div>
+
+         {/* Chân Trang */}
+          <Footer
+            activeTasksCount={activeTaskCount}
+            completedTasksCount={completeTaskCount}
+          />
+
         </div>
       </div>
     </div>
