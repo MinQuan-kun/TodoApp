@@ -5,6 +5,7 @@
 [![MongoDB](https://img.shields.io/badge/MongoDB-6.0-green?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-4.0-teal?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![ShadCN](https://img.shields.io/badge/ShadCN-ui-purple)](https://shadcn-ui.com/)
+[![Docker](https://img.shields.io/badge/Docker-20.10-blue?logo=docker&logoColor=white)](https://www.docker.com/)
 
 Deployed on: [Render](https://todoapp-ozbt.onrender.com)
 
@@ -12,14 +13,18 @@ Deployed on: [Render](https://todoapp-ozbt.onrender.com)
 
 ## 🚀 Giới thiệu
 
-**TodoApp** là một app cá nhân dùng quản lý công việc, được xây dựng với **React** cho frontend, **Node.js** và **MongoDB** cho backend, kết hợp **TailwindCSS 4** và **ShadCN UI** để tạo giao diện hiện đại, trực quan và responsive.  
+**TodoApp** là ứng dụng quản lý công việc cá nhân, được xây dựng với:
 
-Ứng dụng cho phép người dùng:
+- **Frontend**: React + TailwindCSS 4 + ShadCN UI
+- **Backend**: Node.js + Express
+- **Database**: MongoDB
+
+Ứng dụng cho phép:
 
 - Thêm, sửa, xóa công việc.
-- Đánh dấu công việc hoàn thành.
-- Lọc công việc theo trạng thái.
-- Truy cập từ mọi thiết bị nhờ giao diện responsive.
+- Đánh dấu hoàn thành.
+- Lọc theo trạng thái.
+- Responsive trên mọi thiết bị.
 
 ---
 
@@ -27,16 +32,16 @@ Deployed on: [Render](https://todoapp-ozbt.onrender.com)
 
 | Công nghệ | Vai trò |
 |-----------|--------|
-| **React** | Frontend, xây dựng UI động |
-| **Node.js + Express** | Backend, API server |
-| **MongoDB** | Cơ sở dữ liệu NoSQL |
-| **TailwindCSS 4** | Tạo giao diện nhanh, responsive |
+| **React** | Frontend, UI động |
+| **Node.js + Express** | Backend API |
+| **MongoDB** | Database NoSQL |
+| **TailwindCSS 4** | Giao diện nhanh, responsive |
 | **ShadCN UI** | Component UI hiện đại |
-| **Render** | Deploy fullstack app trực tuyến |
+| **Docker** | Chạy container dễ dàng |
 
 ---
 
-## ⚡ Triển khai & chạy dự án
+## ⚡ Triển khai & chạy dự án với Docker
 
 ### 1️⃣ Clone dự án
 ```bash
@@ -44,34 +49,43 @@ git clone https://github.com/MinQuan-kun/TodoApp.git
 cd TodoApp
 ````
 
-### 2️⃣ Mở dự án trong VS Code
+### 2️⃣ Chạy toàn bộ ứng dụng bằng Docker Compose
 
 ```bash
-code .
+docker compose up --build -d
 ```
 
-### 3️⃣ Cài đặt dependencies & build
+> Lệnh này sẽ build và chạy **MongoDB**, **backend**, **frontend** trong các container.
+
+### 3️⃣ Kiểm tra các container đang chạy
 
 ```bash
-npm run build
+docker ps
 ```
 
-> Lệnh này sẽ tải và cài đặt tất cả các module cần thiết cho dự án.
+Container chính:
 
-### 4️⃣ Chạy ứng dụng
+* `todo-mongodb` (MongoDB)
+* `todo-backend` (Node.js API)
+* `todo-frontend` (React App)
+
+### 4️⃣ Truy cập ứng dụng
+
+* Frontend: [http://localhost:5173](http://localhost:5173)
+* Backend API: [http://localhost:5001/api/tasks](http://localhost:5001/api/tasks)
+
+### 5️⃣ Dừng ứng dụng
 
 ```bash
-npm run start
+docker compose down
 ```
 
-### 5️⃣ Truy cập ứng dụng
-
-Mở trình duyệt và vào: [http://localhost:5001](http://localhost:5001)
+> Giữ dữ liệu MongoDB vì đã mount volume `mongodb_data`.
 
 ---
 
-
 ## 🔗 Nguồn tham khảo
 
-[![GitHub](https://img.shields.io/badge/GitHub-Visit-black?logo=github&logoColor=white)](https://github.com/mtikcode/mtikcode_todoX)  
-[![YouTube](https://img.shields.io/badge/YouTube-Watch-red?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=L3a9c8M55Fo&t=2783s)
+[![GitHub](https://img.shields.io/badge/GitHub-Visit-black?logo=github\&logoColor=white)](https://github.com/mtikcode/mtikcode_todoX)
+[![YouTube](https://img.shields.io/badge/YouTube-Watch-red?logo=youtube\&logoColor=white)](https://www.youtube.com/watch?v=L3a9c8M55Fo&t=2783s)
+
