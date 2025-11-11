@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 
-dotenv.config();
+const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.development";
+dotenv.config({ path: path.resolve(envFile) });
 
 const PORT = process.env.PORT || 5001;
 const __dirname = path.resolve();
@@ -15,12 +16,19 @@ const app = express();
 // middlewares
 app.use(express.json());
 
-if (process.env.NODE_ENV !== "production") {
-  app.use(cors({ origin: "http://localhost:5173" }));
-}
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV !== "production"
+        ? "http://localhost:5173" 
+        : "*"
+  })
+);
 
+// routes
 app.use("/api/tasks", taskRoute);
 
+// production static
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
@@ -29,8 +37,14 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`server bắt đầu trên cổng ${PORT}`);
+// Kết nối MongoDB
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server chạy trên cổng ${PORT} | ENV=${process.env.NODE_ENV}`);
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
   });
-});
