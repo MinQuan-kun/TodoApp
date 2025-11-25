@@ -1,11 +1,13 @@
 import express from "express";
 import taskRoute from "./routes/tasksRouters.js";
 import { connectDB } from "./config/db.js";
+import { connectRedis } from "./config/redis.js";
 import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 
-const envFile = process.env.NODE_ENV === "production" ? ".env" : ".env.development";
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env" : ".env.development";
 dotenv.config({ path: path.resolve(envFile) });
 
 const PORT = process.env.PORT || 5001;
@@ -19,9 +21,7 @@ app.use(express.json());
 app.use(
   cors({
     origin:
-      process.env.NODE_ENV !== "production"
-        ? "http://localhost:5173" 
-        : "*"
+      process.env.NODE_ENV !== "production" ? "http://localhost:5173" : "*",
   })
 );
 
@@ -39,12 +39,15 @@ if (process.env.NODE_ENV === "production") {
 
 // Kết nối MongoDB
 connectDB()
+  .then(connectRedis) // <-- GỌI HÀM KẾT NỐI REDIS SAU KHI KẾT NỐI MONGODB
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`Server chạy trên cổng ${PORT} | ENV=${process.env.NODE_ENV}`);
+      console.log(
+        `Server chạy trên cổng ${PORT} | ENV=${process.env.NODE_ENV}`
+      );
     });
   })
   .catch((err) => {
-    console.error("MongoDB connection failed:", err.message);
+    console.error("Khởi động server thất bại:", err.message);
     process.exit(1);
   });
