@@ -1,5 +1,6 @@
 import express from "express";
 import taskRoute from "./routes/tasksRouters.js";
+import ChatRouter from "./routes/ChatRouters.js"; 
 import { connectDB } from "./config/db.js";
 import { connectRedis } from "./config/redis.js";
 import dotenv from "dotenv";
@@ -27,7 +28,7 @@ app.use(
 
 // routes
 app.use("/api/tasks", taskRoute);
-
+app.use("/api/chat", ChatRouter);
 // production static
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
