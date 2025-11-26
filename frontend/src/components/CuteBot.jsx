@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import API from "@/lib/axios";
+import API from '@/lib/axios';
 
 const CuteBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showBubble, setShowBubble] = useState(false);
   
-  // 1. Lời chào chuẩn cho Todo App
   const [messages, setMessages] = useState([
     { role: 'model', text: 'Konnichiwa Master! 📝 Hôm nay Master cần làm gì không? Miku check giúp cho nha! 🎵' }
   ]);
@@ -17,7 +16,6 @@ const CuteBot = () => {
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   useEffect(() => scrollToBottom(), [messages, isOpen]);
 
-  // Hiệu ứng bong bóng: Chỉ hiện khi ĐÓNG chat
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isOpen) {
@@ -26,7 +24,6 @@ const CuteBot = () => {
       }
     }, 15000);
 
-    // Hiện lần đầu
     const timer = setTimeout(() => {
         if(!isOpen) setShowBubble(true);
     }, 2000);
@@ -68,11 +65,27 @@ const CuteBot = () => {
     if (e.key === 'Enter') handleSend();
   };
 
+  // --- HÀM XỬ LÝ HIỂN THỊ TEXT ---
+  const renderMessageText = (text) => {
+    if (!text) return null;
+    
+    // Regex tìm chuỗi nằm giữa ** và ** (nhóm capture)
+    const parts = text.split(/(\*\*[^*]+\*\*)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Bỏ 2 ký tự đầu (**) và 2 ký tự cuối (**)
+        const content = part.slice(2, -2);
+        return <strong key={index} className="font-bold text-indigo-600">{content}</strong>;
+      }
+      return part;
+    });
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-2">
       
       {/* --- KHUNG CHAT --- */}
-      {/* Chỉ render khi isOpen = true */}
       {isOpen && (
         <div className="bg-white w-80 h-96 rounded-2xl shadow-2xl border border-teal-200 flex flex-col overflow-hidden animate-in slide-in-from-bottom-10 duration-300 mb-2">
           <div className="bg-gradient-to-r from-teal-400 to-cyan-500 p-3 flex justify-between items-center text-white">
@@ -88,12 +101,13 @@ const CuteBot = () => {
           <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-teal-50/30 custom-scrollbar">
             {messages.map((msg, index) => (
               <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] p-3 text-sm rounded-xl shadow-sm ${
+                <div className={`max-w-[85%] p-3 text-sm rounded-xl shadow-sm whitespace-pre-wrap ${
                   msg.role === 'user' 
                     ? 'bg-teal-500 text-white rounded-tr-none' 
                     : 'bg-white text-gray-800 border border-teal-100 rounded-tl-none'
                 }`}>
-                  {msg.text}
+                  {/* GỌI HÀM RENDER ĐỂ HIỂN THỊ IN ĐẬM */}
+                  {renderMessageText(msg.text)}
                 </div>
               </div>
             ))}
@@ -126,9 +140,6 @@ const CuteBot = () => {
 
       {/* --- NÚT MIKU + BONG BÓNG --- */}
       <div className="relative group">
-        
-        {/* 2. FIX BONG BÓNG: Thêm điều kiện !isOpen vào className */}
-        {/* Nếu isOpen = true (đang chat) -> scale-0 opacity-0 (Ẩn ngay lập tức) */}
         <div className={`
             absolute bottom-full right-0 mb-2 w-48 bg-white p-3 rounded-xl rounded-br-none shadow-lg border border-teal-200
             transform transition-all duration-300 origin-bottom-right z-40

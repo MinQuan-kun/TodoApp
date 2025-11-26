@@ -1,6 +1,7 @@
 import express from "express";
 import taskRoute from "./routes/tasksRouters.js";
-import ChatRouter from "./routes/ChatRouters.js"; 
+import authRoute from "./routes/authRouters.js";
+import ChatRouter from "./routes/ChatRouters.js";
 import { connectDB } from "./config/db.js";
 import { connectRedis } from "./config/redis.js";
 import dotenv from "dotenv";
@@ -26,10 +27,10 @@ app.use(
   })
 );
 
-// routes
+app.use("/api/auth", authRoute);
 app.use("/api/tasks", taskRoute);
 app.use("/api/chat", ChatRouter);
-// production static
+
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
@@ -40,7 +41,7 @@ if (process.env.NODE_ENV === "production") {
 
 // Kết nối MongoDB
 connectDB()
-  .then(connectRedis) // <-- GỌI HÀM KẾT NỐI REDIS SAU KHI KẾT NỐI MONGODB
+  .then(connectRedis)
   .then(() => {
     app.listen(PORT, () => {
       console.log(
