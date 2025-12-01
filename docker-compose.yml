@@ -1,27 +1,6 @@
 version: "3.8"
 
 services:
-  # MongoDB Database
-  mongodb:
-    image: mongo:7.0
-    container_name: todo-mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - todo-network
-
-  # Redis
-  redis:
-    image: redis:7-alpine
-    container_name: todo-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - todo-network
-    restart: always
-
   # Backend API
   backend:
     build:
@@ -34,10 +13,10 @@ services:
       - ./backend/.env
     environment:
       - NODE_ENV=production
-      - REDIS_URI=redis://redis:6379
-    depends_on:
-      - mongodb
-      - redis
+      - MONGODB_CONNECT_STRING=${MONGODB_CONNECT_STRING}
+      - REDIS_URI=${REDIS_URI}
+      - JWT_SECRET=${JWT_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     networks:
       - todo-network
     restart: unless-stopped
@@ -53,15 +32,13 @@ services:
     env_file:
       - ./frontend/.env
     environment:
-      - VITE_API_URL=http://backend:5001/api
+      # Nếu chạy local thì để localhost, nếu deploy thì đổi thành domain thật
+      - VITE_API_URL=http://localhost:5001/api
     depends_on:
       - backend
     networks:
       - todo-network
     restart: unless-stopped
-
-volumes:
-  mongodb_data:
 
 networks:
   todo-network:

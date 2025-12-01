@@ -6,11 +6,20 @@ const CACHE_TTL = 60;
 // Hàm xóa cache
 const invalidateTasksCache = async (userId) => {
   try {
-    const keys = await redisClient.keys(`tasks:${userId}:*`);
-    if (keys.length > 0) {
-      await redisClient.del(keys);
-      console.log(`Đã xóa ${keys.length} khóa cache tasks cho User ${userId}.`);
+    const setKey = `user_cache_keys:${userId}`;
+    
+    // 1. Lấy tất cả các key cache task của user này từ Set
+    const keysToDelete = await redisClient.sMembers(setKey);
+    
+    if (keysToDelete.length > 0) {
+      // 2. Xóa dữ liệu cache
+      await redisClient.del(keysToDelete);
+      console.log(`Đã xóa ${keysToDelete.length} khóa cache tasks.`);
     }
+    
+    // 3. Xóa luôn cái Set quản lý (hoặc để nó tự hết hạn)
+    await redisClient.del(setKey);
+    
   } catch (error) {
     console.error("Lỗi khi xóa cache Redis:", error);
   }
