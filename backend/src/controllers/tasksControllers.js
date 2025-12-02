@@ -1,40 +1,39 @@
 import Task from "../models/Task.js";
 import redisClient from "../config/redis.js";
 
-const CACHE_TTL = 60;
+const CACHE_TTL = 3600;
 
-// Hàm xóa cache
+// === HÀM XÓA CACHE TỐI ƯU (Dùng Set thay vì Keys) ===
 const invalidateTasksCache = async (userId) => {
   try {
-    const setKey = `user_cache_keys:${userId}`;
+    const userKeysSet = `user_keys:${userId}`;
     
-    // 1. Lấy tất cả các key cache task của user này từ Set
-    const keysToDelete = await redisClient.sMembers(setKey);
+    // 1. Lấy danh sách các key cache đã lưu của user này từ Set
+    const keysToDelete = await redisClient.sMembers(userKeysSet);
     
     if (keysToDelete.length > 0) {
-      // 2. Xóa dữ liệu cache
+      // 2. Xóa sạch các key đó ngay lập tức (không cần quét DB)
       await redisClient.del(keysToDelete);
-      console.log(`Đã xóa ${keysToDelete.length} khóa cache tasks.`);
+      console.log(`[Redis] Đã xóa ${keysToDelete.length} khóa cache của User ${userId}`);
     }
     
-    // 3. Xóa luôn cái Set quản lý (hoặc để nó tự hết hạn)
-    await redisClient.del(setKey);
+    // 3. Xóa luôn danh sách quản lý key
+    await redisClient.del(userKeysSet);
     
   } catch (error) {
-    console.error("Lỗi khi xóa cache Redis:", error);
+    console.error("[Redis] Lỗi khi xóa cache:", error);
   }
 };
 
 export const getAllTasks = async (req, res) => {
   const { filter = "today" } = req.query;
-  const userId = req.user._id; // Lấy User ID từ middleware
+  const userId = req.user._id;
   const cacheKey = `tasks:${userId}:${filter}`;
 
   try {
     // 1. Kiểm tra cache
     const cachedData = await redisClient.get(cacheKey);
     if (cachedData) {
-      console.log("Cache hit:", cacheKey);
       return res.status(200).json(JSON.parse(cachedData));
     }
 
@@ -64,11 +63,11 @@ export const getAllTasks = async (req, res) => {
     }
 
     const query = {
-      userId, // Chỉ lấy Task của người dùng này
+      userId,
       ...(startDate && { createdAt: { $gte: startDate } }),
     };
 
-    // 2. Truy vấn Database nếu Cache Miss
+    // 2. Truy vấn Database
     const result = await Task.aggregate([
       { $match: query },
       {
@@ -92,13 +91,14 @@ export const getAllTasks = async (req, res) => {
 
     const responseData = { tasks, activeCount, completeCount };
 
-    // 3. Ghi kết quả vào Cache với TTL
+    // 3. Lưu Cache & Lưu Key vào Set quản lý (QUAN TRỌNG)
     await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(responseData));
-    console.log("Cache set:", cacheKey);
+    await redisClient.sAdd(`user_keys:${userId}`, cacheKey); // Lưu vết key này thuộc về user nào
+    await redisClient.expire(`user_keys:${userId}`, CACHE_TTL + 600); // Set cũng cần hết hạn
 
     res.status(200).json(responseData);
   } catch (error) {
-    console.error("Lỗi khi gọi getAllTasks", error);
+    console.error("Lỗi getAllTasks:", error);
     res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -106,20 +106,17 @@ export const getAllTasks = async (req, res) => {
 export const createTask = async (req, res) => {
   try {
     const { title } = req.body;
-    const userId = req.user._id; // Lấy User ID từ req.user
+    const userId = req.user._id;
 
-    const task = new Task({
-      title,
-      userId, // Gán Task cho User
-    });
-
+    const task = new Task({ title, userId });
     const newTask = await task.save();
 
-    await invalidateTasksCache(userId); // Truyền userId vào hàm xóa cache
+    // Xóa cache cũ để User thấy dữ liệu mới ngay
+    await invalidateTasksCache(userId);
 
     res.status(201).json(newTask);
   } catch (error) {
-    console.error("Lỗi khi gọi createTask", error);
+    console.error("Lỗi createTask:", error);
     res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -131,25 +128,19 @@ export const updateTask = async (req, res) => {
 
     const updatedTask = await Task.findOneAndUpdate(
       { _id: req.params.id, userId },
-      {
-        title,
-        status,
-        completedAt,
-      },
+      { title, status, completedAt },
       { new: true }
     );
 
     if (!updatedTask) {
-      return res
-        .status(404)
-        .json({ message: "Nhiệm vụ không tồn tại hoặc bạn không có quyền." });
+      return res.status(404).json({ message: "Không tìm thấy task" });
     }
 
     await invalidateTasksCache(userId);
 
     res.status(200).json(updatedTask);
   } catch (error) {
-    console.error("Lỗi khi gọi updateTask", error);
+    console.error("Lỗi updateTask:", error);
     res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };
@@ -158,23 +149,20 @@ export const deleteTask = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // Kiểm tra task theo ID VÀ userId
     const deletedTask = await Task.findOneAndDelete({
       _id: req.params.id,
-      userId, // Thêm userId vào điều kiện tìm kiếm
+      userId,
     });
 
     if (!deletedTask) {
-      return res
-        .status(404)
-        .json({ message: "Nhiệm vụ không tồn tại hoặc bạn không có quyền." });
+      return res.status(404).json({ message: "Không tìm thấy task" });
     }
 
     await invalidateTasksCache(userId);
 
     res.status(200).json(deletedTask);
   } catch (error) {
-    console.error("Lỗi khi gọi deleteTask", error);
+    console.error("Lỗi deleteTask:", error);
     res.status(500).json({ message: "Lỗi hệ thống" });
   }
 };

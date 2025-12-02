@@ -13,10 +13,6 @@ services:
       - ./backend/.env
     environment:
       - NODE_ENV=production
-      - MONGODB_CONNECT_STRING=${MONGODB_CONNECT_STRING}
-      - REDIS_URI=${REDIS_URI}
-      - JWT_SECRET=${JWT_SECRET}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
     networks:
       - todo-network
     restart: unless-stopped

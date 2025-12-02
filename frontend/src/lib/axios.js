@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const BASE_URL =
-  "https://combine-bags-contest-category.trycloudflare.com/api";
+  "https://print-lawrence-recommends-dressing.trycloudflare.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,

@@ -1,6 +1,5 @@
 import { createClient } from "redis";
 
-// Sử dụng biến môi trường được định nghĩa trong docker-compose.yml hoặc .env
 const REDIS_URI = process.env.REDIS_URI || "redis://localhost:6379";
 
 const redisClient = createClient({
@@ -9,9 +8,8 @@ const redisClient = createClient({
 
 redisClient.on("error", (err) => console.error("Redis Client Error", err));
 
-// Hàm kết nối
 export const connectRedis = async () => {
-  if (!redisClient.isReady) {
+  if (!redisClient.isOpen) {
     try {
       await redisClient.connect();
       console.log("Kết nối Redis thành công");
@@ -20,8 +18,5 @@ export const connectRedis = async () => {
     }
   }
 };
-
-// Đảm bảo client kết nối trước khi export
-connectRedis();
 
 export default redisClient;
