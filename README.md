@@ -10,7 +10,7 @@
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ed?logo=docker&logoColor=white)
 
 Một ứng dụng quản lý công việc cá nhân hiện đại, tích hợp **Trí tuệ nhân tạo (AI)** và **Redis Caching** để tối ưu hiệu suất.
-
+- Link truy cập: https://todoapp-ozbt.onrender.com
 ---
 
 ## 🚀 Tính năng nổi bật
@@ -146,10 +146,3 @@ Mọi đóng góp đều được hoan nghênh\! Hãy tạo **Pull Request** ho�
 -----
 
 **Made with 💜 by MinQuan-kun**
-### Các thay đổi chính so với bản cũ:
-```
-1.  **Thêm Redis & Gemini:** Đã bổ sung thông tin về Redis (cache) và Google Gemini (AI Chatbot) vì trong code `backend/src/controllers` và `config` có sử dụng chúng.
-2.  **Cập nhật Tech Stack:** React 19, TailwindCSS v4 (dựa trên `frontend/package.json`).
-3.  **Hướng dẫn `.env`:** Bổ sung hướng dẫn cấu hình `GEMINI_API_KEY` và `REDIS_URI` quan trọng để app chạy đúng.
-4.  **Start script:** Nhắc người dùng sử dụng `start.sh` hoặc `start.bat` có sẵn trong source.
-```
